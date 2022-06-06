@@ -2,27 +2,31 @@
 // eagles;
 import { findParametr, findCurrentElInfo } from './js/api';
 import eventCard from './templates/event-card.hbs';
+import { pagination } from './js/pagination';
+const puginationWrapperEl = document.querySelector('.pugination-wrapper');
+puginationWrapperEl.style.display = 'none';
 
 const ulEl = document.querySelector('.js-list');
-const btnEl = document.querySelector('.js-btn');
+// const btnEl = document.querySelector('.js-btn');
 const formInputEl = document.querySelector('.form-input');
 let page = 0;
-let findText = 'nirvana';
-btnEl.addEventListener('click', loadData);
+let findText = '';
+// btnEl.addEventListener('click', loadData);
 formInputEl.addEventListener('submit', searchData);
 const backDrop = document.querySelector('.backdrop');
 const modalEl = document.querySelector('.module');
-findParametr(findText, page)
-  .then(data => {
-    const result = eventCard(data._embedded.events);
-    renderList(result);
-  })
-  .catch(err => {
-    console.log(err);
-  });
+// findParametr(findText, page)
+//   .then(data => {
+//     const result = eventCard(data._embedded.events);
+//     renderList(result);
+//     console.log(data);
+//   })
+//   .catch(err => {
+//     console.log(err);
+//   });
 
-function renderList(string) {
-  ulEl.insertAdjacentHTML('beforeend', string);
+export function renderList(string) {
+  ulEl.innerHTML = string;
 }
 function loadData() {
   page += 1;
@@ -50,12 +54,16 @@ function searchData(ev) {
     return;
   }
   ulEl.innerHTML = '';
+
   findParametr(findText, page)
     .then(data => {
       const result = eventCard(data._embedded.events);
       renderList(result);
+      localStorage.setItem('FindText', `${findText}`);
+      pagination(data.page.totalPages);
     })
     .catch(err => {
+      pagination(0);
       console.log(err);
     });
 }
@@ -66,9 +74,11 @@ function onItemCardClick(event) {
     return;
   }
   const currentId = event.target.closest('li').id;
+
   findCurrentElInfo(currentId)
     .then(response => {
       renderModalContant(response);
+      console.dir(response);
     })
     .catch(err => console.log(err));
 
@@ -85,6 +95,7 @@ function onModalCloseClick(event) {
 }
 
 function renderModalContant(obj) {
+  modalEl.innerHTML = '';
   const {
     dates: {
       start: { localDate, localTime },
